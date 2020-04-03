@@ -1,5 +1,6 @@
 package com.star.video.starrec;
 
+import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,6 +34,7 @@ import java.io.IOException;
 
 import static com.star.video.starrec.utils.MD5Helper.getFileMD5;
 
+@TargetApi(19)
 public class RecActivity extends SuperActivity implements
         SurfaceHolder.Callback, MediaRecorder.OnInfoListener, UploadTaskListener {
     private static final String TAG = "RecActivity";
@@ -120,7 +122,9 @@ public class RecActivity extends SuperActivity implements
                         //设置音频源
                         mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
                         // Set output file format
-                        //   mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                          // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                           mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
+                           mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); //h264编码
                         //设置文件输出格式
                         //   mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
                         //  mRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
