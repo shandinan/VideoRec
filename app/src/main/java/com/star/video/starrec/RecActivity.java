@@ -115,34 +115,37 @@ public class RecActivity extends SuperActivity implements
                     }
                     try {
                         // 这两项需要放在setOutputFormat之前
-                        // mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-                        //  mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+                     //   mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+                    //    mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                         //设置视频源
-                        mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+                       mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
                         //设置音频源
-                        mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                         mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
                         // Set output file format
-                          // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                           mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
-                           mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); //h264编码
+                         // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                          // mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
+                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); //h264编码
+
                         //设置文件输出格式
                         //   mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
                         //  mRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_720P));
                         // //480p效果
-                        // mRecorder.setProfile(CamcorderProfile);
+                        //mRecorder.setProfile(CamcorderProfile);
                         // 这两项需要放在setOutputFormat之后
                         //  mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
                         //  mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); // H263的貌似有点不清晰
                         // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                        CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                      CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
                         mRecorder.setProfile(cProfile);
-                        //mRecorder.setVideoSize(640, 480);
-                        //mRecorder.setVideoFrameRate(30);
+                       // mRecorder.setVideoSize(640, 480);
+                      //  mRecorder.setVideoSize(1280,720);
+                        mRecorder.setVideoFrameRate(30);
                         // mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
-                        //  mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
-                        // mRecorder.setOrientationHint(90);
+                      //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
+                     //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
+                         mRecorder.setOrientationHint(90);
                         // 设置记录会话的最大持续时间（毫秒）
                         // mRecorder.setMaxDuration(15 * 1000);
                         mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
@@ -175,7 +178,23 @@ public class RecActivity extends SuperActivity implements
                     if (mStartedFlg) {
                         try {
                             handler.removeCallbacks(runnable);
-                            mRecorder.stop();
+                            try {
+                                //下面三个参数必须加，不加的话会奔溃，在mediarecorder.stop();
+                                //报错为：RuntimeException:stop failed
+                                mRecorder.setOnErrorListener(null);
+                                mRecorder.setOnInfoListener(null);
+                                mRecorder.setPreviewDisplay(null);
+                                mRecorder.stop();
+                            } catch (IllegalStateException e) {
+                                // TODO: handle exception
+                                Log.i("Exception", Log.getStackTraceString(e));
+                            }catch (RuntimeException e) {
+                                // TODO: handle exception
+                                Log.i("Exception", Log.getStackTraceString(e));
+                            }catch (Exception e) {
+                                // TODO: handle exception
+                                Log.i("Exception", Log.getStackTraceString(e));
+                            }
                             mRecorder.reset();
                             mRecorder.release();
                             mRecorder = null;
@@ -226,6 +245,7 @@ public class RecActivity extends SuperActivity implements
                             mediaPlayer.release();
                             mediaPlayer = null;
                         }
+                        mIsPlay = false;
                         mBtnPlay.setText("回播");
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -261,6 +281,10 @@ public class RecActivity extends SuperActivity implements
         hpzl = localIntent.getStringExtra("hpzl");
         strServer_ip = localIntent.getStringExtra("ip"); //获取传送过来的IP
         strServer_port = localIntent.getStringExtra("port"); //获取传送过来的端口
+//        hphm="苏EA98X8";
+//        hpzl="02";
+//        strServer_ip="192.168.1.58";
+//        strServer_port="8080";
         //  strClsbdh = localIntent.getStringExtra("clsbdh");
         strClsbdh = "SDSDSDNNN";
         // queue_id = localIntent.getStringExtra("queueid");
