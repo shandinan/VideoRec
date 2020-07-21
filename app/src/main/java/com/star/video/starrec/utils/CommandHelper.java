@@ -135,8 +135,8 @@ public class CommandHelper {
             Log.e(TAG, "InterruptedException:" + ex.getLocalizedMessage());
         }
         if (!reply.matches(REGEX_CID)) {
-            //reply = "000000000";// 测试
-            reply = null; // 获取ID异常
+            reply = "000000000";// 测试
+            //reply = null; // 获取ID异常
         }
         return reply;
     }
