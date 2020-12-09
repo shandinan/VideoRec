@@ -1,6 +1,20 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('D:\\adt-bundle-windows\\starApp.jks')
+            storePassword 'star123'
+            keyAlias = 'star'
+            keyPassword 'star123'
+        }
+        debug {
+            storeFile file('D:\\adt-bundle-windows\\starApp.jks')
+            storePassword 'star123'
+            keyAlias = 'star'
+            keyPassword 'star123'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.star.video.starrec"

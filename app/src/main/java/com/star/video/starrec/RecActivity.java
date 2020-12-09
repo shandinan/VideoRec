@@ -18,6 +18,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,9 +40,9 @@ public class RecActivity extends SuperActivity implements
         SurfaceHolder.Callback, MediaRecorder.OnInfoListener, UploadTaskListener {
     private static final String TAG = "RecActivity";
     private SurfaceView mSurfaceview;
-    private Button mBtnStartStop;
-    private Button mBtnPlay;
-    private Button mBtnUpdateVideo;
+    private ImageButton mBtnStartStop;
+    private ImageButton mBtnPlay;
+    private ImageButton mBtnUpdateVideo;
     private boolean mStartedFlg = false;// 是否正在录像
     private boolean mIsPlay = false;// 是否正在播放录像
     private MediaRecorder mRecorder;
@@ -54,6 +55,8 @@ public class RecActivity extends SuperActivity implements
     private int time_second = 0; //录像时长 秒
     String hphm = ""; //号牌号码
     String hpzl = ""; //号牌种类
+    String clsbdh="";//车辆识别代号
+    String jylsh="";//检验流水号
     String vectype = ""; //检测类型
     String strServer_ip = ""; //上传服务IP
     String strServer_port = "";//上传服务端口
@@ -81,10 +84,13 @@ public class RecActivity extends SuperActivity implements
         setContentView(R.layout.sdnrecvideo);
         mSurfaceview = (SurfaceView) findViewById(R.id.surfaceview);
         mImageView = (ImageView) findViewById(R.id.imageview);
-        mBtnStartStop = (Button) findViewById(R.id.btnStartStop);
-        mBtnPlay = (Button) findViewById(R.id.btnPlayVideo);
+        mBtnStartStop = (ImageButton) findViewById(R.id.btnStartStop);
+        mBtnStartStop.setBackgroundResource(R.mipmap.start); //播放
+        mBtnPlay = (ImageButton) findViewById(R.id.btnPlayVideo);
+        mBtnPlay.setBackgroundResource(R.mipmap.play_b);
         mBtnPlay.setEnabled(false);//设置不可用
-        mBtnUpdateVideo = (Button) findViewById(R.id.btnUpdateVideo);// 上传视频
+        mBtnUpdateVideo = (ImageButton) findViewById(R.id.btnUpdateVideo);// 上传视频
+        mBtnUpdateVideo.setBackgroundResource(R.mipmap.up_b);
         mBtnUpdateVideo.setEnabled(false); //设置不可用
         recTimeView = (TextView) findViewById(R.id.rectime);
         // 开始结束按钮
@@ -168,7 +174,8 @@ public class RecActivity extends SuperActivity implements
                             mRecorder.prepare();
                             mRecorder.start();
                             mStartedFlg = true;
-                            mBtnStartStop.setText("停止");
+                           // mBtnStartStop.setText("停止");
+                            mBtnStartStop.setBackgroundResource(R.mipmap.stop);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -198,13 +205,15 @@ public class RecActivity extends SuperActivity implements
                             mRecorder.reset();
                             mRecorder.release();
                             mRecorder = null;
-                            mBtnStartStop.setText("开始");
+                            mBtnStartStop.setBackgroundResource(R.mipmap.start);
                             if (camera != null) {
                                 camera.release();
                                 camera = null;
                             }
                             mBtnPlay.setEnabled(true); //回播按钮可用
+                            mBtnPlay.setBackgroundResource(R.mipmap.play);
                             mBtnUpdateVideo.setEnabled(true);//上传按钮可用
+                            mBtnUpdateVideo.setBackgroundResource(R.mipmap.up);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -220,7 +229,8 @@ public class RecActivity extends SuperActivity implements
             public void onClick(View view) {
                 if (!mIsPlay) { //未播放视频 开始播放视频
                     mIsPlay = true;
-                    mBtnPlay.setText("停止");
+                 //   mBtnPlay.setText("停止");
+                    mBtnPlay.setBackgroundResource(R.mipmap.play_stop);
                     mImageView.setVisibility(View.GONE);
                     if (mediaPlayer == null) {
                         mediaPlayer = new MediaPlayer();
@@ -246,7 +256,8 @@ public class RecActivity extends SuperActivity implements
                             mediaPlayer = null;
                         }
                         mIsPlay = false;
-                        mBtnPlay.setText("回播");
+                    //    mBtnPlay.setText("回播");
+                        mBtnPlay.setBackgroundResource(R.mipmap.play);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -266,6 +277,9 @@ public class RecActivity extends SuperActivity implements
                         .setFileName(fileName)
                         .setHphm(hphm)
                         .setHpzl(hpzl)
+                        .setClsbdh(clsbdh)
+                        .setJylsh(jylsh)
+                        .setZpzl(vectype) //上传照片种类
                         .setListener(RecActivity.this)
                         .build();
                 uploadManager.addUploadTask(task);
@@ -281,12 +295,15 @@ public class RecActivity extends SuperActivity implements
         hpzl = localIntent.getStringExtra("hpzl");
         strServer_ip = localIntent.getStringExtra("ip"); //获取传送过来的IP
         strServer_port = localIntent.getStringExtra("port"); //获取传送过来的端口
+        clsbdh = localIntent.getStringExtra("clsbdh");//车辆识别代号
+        jylsh = localIntent.getStringExtra("jylsh");//检验流水号
+        vectype = localIntent.getStringExtra("zpzl"); //照片种类，这里当作拍照类型用
 //        hphm="苏EA98X8";
 //        hpzl="02";
 //        strServer_ip="192.168.1.58";
 //        strServer_port="8080";
         //  strClsbdh = localIntent.getStringExtra("clsbdh");
-        strClsbdh = "SDSDSDNNN";
+        strClsbdh = clsbdh;
         // queue_id = localIntent.getStringExtra("queueid");
         isUploadSucc = false;
     }

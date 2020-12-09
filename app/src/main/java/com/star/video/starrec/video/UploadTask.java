@@ -19,6 +19,7 @@ import android.os.Looper;
 import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
+
 import okhttp3.Call;
 import okhttp3.Headers;
 import okhttp3.MediaType;
@@ -30,12 +31,12 @@ import okhttp3.Response;
 
 /**
  * 上传线程
+ *
  * @author
  * @date 2019/12/23
- *
  */
 public class UploadTask implements Runnable {
-    private static final String TAG ="UploadTask";
+    private static final String TAG = "UploadTask";
     private static String FILE_MODE = "rwd";
     private OkHttpClient mClient;
     private UploadTaskListener mListener;
@@ -49,6 +50,9 @@ public class UploadTask implements Runnable {
     private int position;
     private String hphm;//号牌号码
     private String hpzl;//号牌种类
+    private String clsbdh;
+    private String jylsh;
+    private String zpzl;
 
     private int errorCode;
     static String BOUNDARY = "----------" + System.currentTimeMillis();
@@ -62,8 +66,11 @@ public class UploadTask implements Runnable {
         this.fileName = mBuilder.fileName;
         this.uploadStatus = mBuilder.uploadStatus;
         this.chunck = mBuilder.chunck;
-        this.hphm=mBuilder.hphm;
-        this.hpzl=mBuilder.hpzl;
+        this.hphm = mBuilder.hphm;
+        this.hpzl = mBuilder.hpzl;
+        this.clsbdh = mBuilder.clsbdh;
+        this.jylsh = mBuilder.jylsh;
+        this.zpzl = mBuilder.zpzl;
         this.setmListener(mBuilder.listener);
         // 以kb为计算单位
     }
@@ -73,7 +80,7 @@ public class UploadTask implements Runnable {
         try {
             int blockLength = 1024 * 1024;
             //long lastblockLength = 1024 * 1024;
-          //  File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + fileName);
+            //  File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + fileName);
             File file = new File(fileName);
             //String md5 = getFileMD5(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + fileName);
             String md5 = getFileMD5(file);
@@ -84,14 +91,14 @@ public class UploadTask implements Runnable {
             }
             //lastblockLength = file.length() / blockLength;
 
-            Log.i(TAG,"chuncks =" +chuncks+ "fileName =" +fileName+ "uploadStatus =" +uploadStatus);
-            Log.i(TAG,"chunck =" +chunck);
-            Log.i(TAG,"md5 =" +md5);
+            Log.i(TAG, "chuncks =" + chuncks + "fileName =" + fileName + "uploadStatus =" + uploadStatus);
+            Log.i(TAG, "chunck =" + chunck);
+            Log.i(TAG, "md5 =" + md5);
             //Log.i(TAG,"lastblockLength =" +lastblockLength);
             String eid = null;
             try {
                 eid = CommandHelper.getMMCId();
-                Log.i(TAG,"eid =" +eid);
+                Log.i(TAG, "eid =" + eid);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -106,11 +113,11 @@ public class UploadTask implements Runnable {
                 params.put("chunk", chunck + "");
                 params.put("size", blockLength + "");
                 params.put("eid", eid);
-                params.put("hphm",hphm);
-                params.put("hpzl",hpzl);
-                Log.i(TAG,"chunck =" +chunck+ "chuncks =" +chuncks);
+                params.put("hphm", hphm);
+                params.put("hpzl", hpzl);
+                Log.i(TAG, "chunck =" + chunck + "chuncks =" + chuncks);
                 final byte[] mBlock = FileUtils.getBlock((chunck - 1) * blockLength, file, blockLength);
-                Log.i(TAG,"mBlock == " +mBlock.length);
+                Log.i(TAG, "mBlock == " + mBlock.length);
                 // 生成RequestBody
                 MultipartBody.Builder builder = new MultipartBody.Builder();
                 addParams(builder, params);
@@ -118,24 +125,24 @@ public class UploadTask implements Runnable {
                 RequestBody requestBody = RequestBody.create(
                         MediaType.parse(fileType), mBlock);
                 builder.addFormDataPart("sdnvideo", fileName, requestBody);
-                Log.i(TAG,"url =" +url);
+                Log.i(TAG, "url =" + url);
 
                 //获得Request实例
                 Request request = new Request.Builder()
                         .url(url)
                         .post(builder.build())
                         .build();
-                Log.i(TAG,"RequestBody execute~");
+                Log.i(TAG, "RequestBody execute~");
 
                 Response response = null;
                 response = mClient.newCall(request).execute();
-                Log.i(TAG,"isSuccessful =" +response.isSuccessful());
-                if(response.isSuccessful()) {
+                Log.i(TAG, "isSuccessful =" + response.isSuccessful());
+                if (response.isSuccessful()) {
                     String ret = response.body().string();
-                    Log.d(TAG,"uploadVideo  UploadTask ret:" +ret);
+                    Log.d(TAG, "uploadVideo  UploadTask ret:" + ret);
                     chunck++;
-                    if(chunck>chuncks){ //上传完成
-                        uploadStatus=UploadStatus.UPLOAD_STATUS_COMPLETED;//
+                    if (chunck > chuncks) { //上传完成
+                        uploadStatus = UploadStatus.UPLOAD_STATUS_COMPLETED;//
                     }
                     onCallBack();
                 } else {
@@ -144,20 +151,21 @@ public class UploadTask implements Runnable {
                 }
             }
         } catch (IOException e) {
-            Log.i(TAG,"run IOException");
+            Log.i(TAG, "run IOException");
             uploadStatus = UploadStatus.UPLOAD_STATUS_ERROR;
             onCallBack();
-            Log.i(TAG,"e error: =" +e.toString());
+            Log.i(TAG, "e error: =" + e.toString());
             e.printStackTrace();
         }
     }
 
     /**
      * 更加文件路径生成唯一的MD5值
+     *
      * @param file
      * @return
      */
-    public  String getFileMD5(File file) {
+    public String getFileMD5(File file) {
         if (!file.isFile()) {
             return null;
         }
@@ -191,7 +199,7 @@ public class UploadTask implements Runnable {
         @Override
         public void handleMessage(android.os.Message msg) {
             int code = msg.what;
-            switch(code) {
+            switch (code) {
                 // 上传失败
                 case UploadStatus.UPLOAD_STATUS_ERROR:
                     mListener.onError(UploadTask.this, errorCode, position);
@@ -201,20 +209,22 @@ public class UploadTask implements Runnable {
                     mListener.onUploading(UploadTask.this, getDownLoadPercent(), position);
                     break;
                 // 暂停上传
-                case  UploadStatus.UPLOAD_STATUS_PAUSE:
+                case UploadStatus.UPLOAD_STATUS_PAUSE:
                     mListener.onPause(UploadTask.this);
                     break;
-                    case UploadStatus.UPLOAD_STATUS_COMPLETED:
-                        File file = new File(fileName);
-                        mListener.onUploadSuccess(UploadTask.this,file);
-                        break;
+                case UploadStatus.UPLOAD_STATUS_COMPLETED:
+                    File file = new File(fileName);
+                    mListener.onUploadSuccess(UploadTask.this, file);
+                    break;
             }
-        };
+        }
+
+        ;
     };
 
     private String getDownLoadPercent() {
         String percentage = "0"; // 接收百分比得值
-        if(chunck >= chuncks) {
+        if (chunck >= chuncks) {
             return "100";
         }
 
@@ -272,17 +282,37 @@ public class UploadTask implements Runnable {
     public String getUrl() {
         return url;
     }
+
     public String getHphm() {
         return hphm;
     }
+
     public void setHphm(String hphm) {
         this.hphm = hphm;
     }
+
     public String getHpzl() {
         return hpzl;
     }
+
     public void setHpzl(String hpzl) {
         this.hpzl = hpzl;
+    }
+
+    public String getClsbdh() {
+        return clsbdh;
+    }
+
+    public String getJylsh() {
+        return jylsh;
+    }
+
+    public String getZpzl() {
+        return zpzl;
+    }
+
+    public void setZpzl(String zpzl) {
+        this.zpzl = zpzl;
     }
 
     public String getFileName() {
@@ -310,6 +340,10 @@ public class UploadTask implements Runnable {
         private UploadTaskListener listener;
         private String hphm;//号牌号码
         private String hpzl;//号牌种类
+        private String clsbdh;
+        private String jylsh;
+        private String zpzl;//车辆识别代号 检验流水号
+
         /**
          * 作为上传task开始、删除、停止的key值，如果为空则默认是url
          *
@@ -368,17 +402,52 @@ public class UploadTask implements Runnable {
 
         /**
          * 号牌号码
+         *
          * @param hphm
          * @return
          */
-        public Builder setHphm(String hphm){
-            this.hphm=hphm;
+        public Builder setHphm(String hphm) {
+            this.hphm = hphm;
             return this;
         }
-        public Builder setHpzl(String hpzl){
-            this.hpzl=hpzl;
-            return  this;
+
+        public Builder setHpzl(String hpzl) {
+            this.hpzl = hpzl;
+            return this;
         }
+
+        /**
+         * 车辆识别代号
+         *
+         * @param _clsbdh
+         * @return
+         */
+        public Builder setClsbdh(String _clsbdh) {
+            this.clsbdh = _clsbdh;
+            return this;
+        }
+
+        /**
+         * 检验流水号
+         *
+         * @param _jylsh
+         * @return
+         */
+        public Builder setJylsh(String _jylsh) {
+            this.jylsh = _jylsh;
+            return this;
+        }
+
+        /**
+         * 照片种类
+         * @param _zpzl
+         * @return
+         */
+        public Builder setZpzl(String _zpzl){
+            this.zpzl = _zpzl;
+            return this;
+        }
+
         /**
          * 设置上传回调
          *
