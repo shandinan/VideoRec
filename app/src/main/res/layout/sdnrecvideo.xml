@@ -8,41 +8,44 @@
         android:id="@+id/surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="100dp" />
+        android:layout_marginBottom="125dp" />
 
     <ImageView
         android:id="@+id/imageview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="60dp" />
-
-    <ImageButton
-        android:id="@+id/btnStartStop"
-        android:layout_width="90dp"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@id/text"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="false"
-        android:layout_marginRight="10dp"
-        android:layout_toLeftOf="@id/btnPlayVideo"
-        android:text="开始" />
+        android:layout_marginBottom="80dp" />
 
     <ImageButton
         android:id="@+id/btnPlayVideo"
-        android:layout_width="90dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerInParent="true"
         android:layout_marginLeft="10dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="5dp"
         android:text="回播" />
 
     <ImageButton
-        android:id="@+id/btnUpdateVideo"
-        android:layout_width="90dp"
+        android:id="@+id/btnStartStop"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginLeft="10dp"
-        android:layout_toRightOf="@id/btnPlayVideo"
+        android:layout_centerInParent="true"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="5dp"
+        android:text="开始" />
+
+    <ImageButton
+        android:id="@+id/btnUpdateVideo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginBottom="5dp"
+        android:layout_toRightOf="@id/btnStartStop"
         android:text="上传" />
 
     <TextView
@@ -51,7 +54,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="20dp"
-        android:layout_marginBottom="55dp"
+        android:layout_marginBottom="93dp"
         android:text="录像时长："
         android:textSize="25sp" />
 
@@ -61,10 +64,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="150dp"
-        android:layout_marginBottom="55dp"
+        android:layout_marginBottom="93dp"
         android:text="0S"
         android:textSize="25sp" />
-
 
 
 </RelativeLayout>
