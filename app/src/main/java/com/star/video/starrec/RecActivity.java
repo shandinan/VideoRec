@@ -2,7 +2,6 @@ package com.star.video.starrec;
 
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -17,7 +16,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -74,7 +72,7 @@ public class RecActivity extends SuperActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.sdnrecvideo);
         mSurfaceview = (SurfaceView) findViewById(R.id.surfaceview);
         mSurfaceHolder = this.mSurfaceview.getHolder();
@@ -121,7 +119,7 @@ public class RecActivity extends SuperActivity implements
                         if(isView){
                             camera.stopPreview();
                         }
-                        camera.setDisplayOrientation(90);
+                     //   camera.setDisplayOrientation(90);
                         camera.unlock();
                         mRecorder.setCamera(camera);
                     }
@@ -160,7 +158,7 @@ public class RecActivity extends SuperActivity implements
                         // mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
                         //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
                         //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
-                        mRecorder.setOrientationHint(90);
+                    //    mRecorder.setOrientationHint(90);
                         // 设置记录会话的最大持续时间（毫秒）
                         // mRecorder.setMaxDuration(15 * 1000);
                         mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
@@ -371,7 +369,7 @@ public class RecActivity extends SuperActivity implements
             camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
         }
         if (camera != null) {
-            camera.setDisplayOrientation(90);
+         //   camera.setDisplayOrientation(90);
            // camera.unlock();
             Camera.Parameters localParameters = this.camera.getParameters(); // 得到摄像机的设置参数
             List<String> focusModes = localParameters.getSupportedFocusModes();
