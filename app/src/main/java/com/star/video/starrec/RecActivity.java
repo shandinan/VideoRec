@@ -32,6 +32,7 @@ import com.star.video.starrec.video.UploadTaskListener;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static com.star.video.starrec.utils.MD5Helper.getFileMD5;
 
@@ -55,8 +56,8 @@ public class RecActivity extends SuperActivity implements
     private int time_second = 0; //录像时长 秒
     String hphm = ""; //号牌号码
     String hpzl = ""; //号牌种类
-    String clsbdh="";//车辆识别代号
-    String jylsh="";//检验流水号
+    String clsbdh = "";//车辆识别代号
+    String jylsh = "";//检验流水号
     String vectype = ""; //检测类型
     String strServer_ip = ""; //上传服务IP
     String strServer_port = "";//上传服务端口
@@ -66,16 +67,9 @@ public class RecActivity extends SuperActivity implements
     private Boolean isUploadSucc;//是否上传完成
     private String fileName; // File name when saving
     private static String URL_Test_ID = "url_test";
+    private boolean isView = false;//摄像头是否预览
     private UploadManager uploadManager; //上传进程管理
     private android.os.Handler handler = new android.os.Handler();
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            time_second++;
-            recTimeView.setText(time_second + " 秒");
-            handler.postDelayed(this, 1000);
-        }
-    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +77,12 @@ public class RecActivity extends SuperActivity implements
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.sdnrecvideo);
         mSurfaceview = (SurfaceView) findViewById(R.id.surfaceview);
+        mSurfaceHolder = this.mSurfaceview.getHolder();
+        mSurfaceHolder.addCallback(this);
+        mSurfaceHolder.setType(3);
         mImageView = (ImageView) findViewById(R.id.imageview);
+        mImageView.setVisibility(View.GONE);
+        mSurfaceview.setVisibility(View.VISIBLE);
         mBtnStartStop = (ImageButton) findViewById(R.id.btnStartStop);
         mBtnStartStop.setBackgroundResource(R.mipmap.start); //播放
         mBtnPlay = (ImageButton) findViewById(R.id.btnPlayVideo);
@@ -113,25 +112,32 @@ public class RecActivity extends SuperActivity implements
                         mRecorder = new MediaRecorder();
                         mRecorder.setOnInfoListener(RecActivity.this); // 设置摄像头事件监听
                     }
-                    camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                    if (camera == null) //如果摄像头未被打开
+                    {
+                        camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                    }
+
                     if (camera != null) {
+                        if(isView){
+                            camera.stopPreview();
+                        }
                         camera.setDisplayOrientation(90);
                         camera.unlock();
                         mRecorder.setCamera(camera);
                     }
                     try {
                         // 这两项需要放在setOutputFormat之前
-                     //   mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-                    //    mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+                        //   mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+                        //    mRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
                         //设置视频源
-                       mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+                        mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
                         //设置音频源
-                         mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                        mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
 
                         // Set output file format
-                         // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                          // mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
-                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); //h264编码
+                        // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                        // mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
+                        //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); //h264编码
 
                         //设置文件输出格式
                         //   mRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
@@ -144,15 +150,17 @@ public class RecActivity extends SuperActivity implements
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); // H263的貌似有点不清晰
                         // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                      CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                     //   CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                        CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
+                       // CamcorderProfile.
                         mRecorder.setProfile(cProfile);
-                       // mRecorder.setVideoSize(640, 480);
-                      //  mRecorder.setVideoSize(1280,720);
+                        // mRecorder.setVideoSize(640, 480);
+                        //  mRecorder.setVideoSize(1280,720);
                         mRecorder.setVideoFrameRate(30);
                         // mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
-                      //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
-                     //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
-                         mRecorder.setOrientationHint(90);
+                        //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
+                        //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
+                        mRecorder.setOrientationHint(90);
                         // 设置记录会话的最大持续时间（毫秒）
                         // mRecorder.setMaxDuration(15 * 1000);
                         mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
@@ -175,7 +183,7 @@ public class RecActivity extends SuperActivity implements
                             mRecorder.prepare();
                             mRecorder.start();
                             mStartedFlg = true;
-                           // mBtnStartStop.setText("停止");
+                            // mBtnStartStop.setText("停止");
                             mBtnStartStop.setBackgroundResource(R.mipmap.stop);
                         }
                     } catch (Exception e) {
@@ -196,10 +204,10 @@ public class RecActivity extends SuperActivity implements
                             } catch (IllegalStateException e) {
                                 // TODO: handle exception
                                 Log.i("Exception", Log.getStackTraceString(e));
-                            }catch (RuntimeException e) {
+                            } catch (RuntimeException e) {
                                 // TODO: handle exception
                                 Log.i("Exception", Log.getStackTraceString(e));
-                            }catch (Exception e) {
+                            } catch (Exception e) {
                                 // TODO: handle exception
                                 Log.i("Exception", Log.getStackTraceString(e));
                             }
@@ -230,7 +238,7 @@ public class RecActivity extends SuperActivity implements
             public void onClick(View view) {
                 if (!mIsPlay) { //未播放视频 开始播放视频
                     mIsPlay = true;
-                 //   mBtnPlay.setText("停止");
+                    //   mBtnPlay.setText("停止");
                     mBtnPlay.setBackgroundResource(R.mipmap.play_stop);
                     mImageView.setVisibility(View.GONE);
                     if (mediaPlayer == null) {
@@ -257,7 +265,7 @@ public class RecActivity extends SuperActivity implements
                             mediaPlayer = null;
                         }
                         mIsPlay = false;
-                    //    mBtnPlay.setText("回播");
+                        //    mBtnPlay.setText("回播");
                         mBtnPlay.setBackgroundResource(R.mipmap.play);
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -312,6 +320,16 @@ public class RecActivity extends SuperActivity implements
         isUploadSucc = false;
     }
 
+
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            time_second++;
+            recTimeView.setText(time_second + " 秒");
+            handler.postDelayed(this, 1000);
+        }
+    };
+
     /**
      * 获取SD path
      *
@@ -346,7 +364,41 @@ public class RecActivity extends SuperActivity implements
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+       // Log.i(TAG, "surfaceCreated: 开始Create");
         mSurfaceHolder = holder;
+       // Log.i(TAG, "surfaceCreated: 开始Creat222e");
+        if (camera == null) {
+            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+        }
+        if (camera != null) {
+            camera.setDisplayOrientation(90);
+           // camera.unlock();
+            Camera.Parameters localParameters = this.camera.getParameters(); // 得到摄像机的设置参数
+            List<String> focusModes = localParameters.getSupportedFocusModes();
+            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                localParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            } else {
+                if (focusModes != null && focusModes.size() > 0)
+                    localParameters.setFocusMode(focusModes.get(0));
+            }
+
+            camera.setParameters(localParameters);
+
+            try {
+                if (!isView) {
+                    camera.setPreviewDisplay(holder);
+                } else {
+                    camera.stopPreview();
+                }
+                isView = true;
+                camera.startPreview();
+               // Log.i(TAG, "surfaceCreated: 开始预览");
+            } catch (IOException e) {
+                Log.e(TAG, "surfaceCreated: 预览失败", e);
+                e.printStackTrace();
+            }
+
+        }
     }
 
     @Override
@@ -460,12 +512,12 @@ public class RecActivity extends SuperActivity implements
     @Override
     public void onUploading(UploadTask uploadTask, String percent, int position) {
         if (uploadTask.getId().equals(URL_Test_ID)) {
-         //   mProgressBar.setProgress(Integer.parseInt(percent));
-          //  mTvStatus.setText("正在下载..." + percent + "%");
+            //   mProgressBar.setProgress(Integer.parseInt(percent));
+            //  mTvStatus.setText("正在下载..." + percent + "%");
             prodialog.setProgress(Integer.parseInt(percent));
         } else {
-        //    mProgressBar.setProgress(Integer.parseInt(percent));
-          //  mTvStatus.setText("正在上传..." + percent + "%");
+            //    mProgressBar.setProgress(Integer.parseInt(percent));
+            //  mTvStatus.setText("正在上传..." + percent + "%");
             prodialog.setProgress(Integer.parseInt(percent));
         }
     }
@@ -477,35 +529,33 @@ public class RecActivity extends SuperActivity implements
             prodialog.setMessage("视频成功，点击确定关闭！");
             Toast.makeText(RecActivity.this, "上传成功", Toast.LENGTH_LONG).show();
             prodialog.dismiss();
-            try
-            {
+            try {
                 file.delete();
                 file.getAbsoluteFile().delete();//删除文件夹
-                file=null;
+                file = null;
                 Thread.sleep(1000);
                 Intent localIntent = new Intent();
                 localIntent.putExtra("result", true); //取消
                 setResult(1, localIntent);
                 finish();
-            }catch (Exception ex){
+            } catch (Exception ex) {
 
             }
         } else {
-           // mTvStatus.setText("上传完成 path：" + file.getAbsolutePath());
+            // mTvStatus.setText("上传完成 path：" + file.getAbsolutePath());
             prodialog.setMessage("视频成功，点击确定关闭！");
             Toast.makeText(RecActivity.this, "上传成功", Toast.LENGTH_LONG).show();
             prodialog.dismiss();
-            try
-            {
+            try {
                 file.delete();
                 file.getAbsoluteFile().delete();//删除文件夹
-                file=null;
+                file = null;
                 Thread.sleep(1000);
                 Intent localIntent = new Intent();
                 localIntent.putExtra("result", true); //取消
                 setResult(1, localIntent);
                 finish();
-            }catch (Exception ex){
+            } catch (Exception ex) {
 
             }
         }
@@ -514,12 +564,12 @@ public class RecActivity extends SuperActivity implements
     @Override
     public void onError(UploadTask uploadTask, int errorCode, int position) {
         if (uploadTask.getId().equals(URL_Test_ID)) {
-           // mTvStatus.setText("上传失败=" + errorCode);
+            // mTvStatus.setText("上传失败=" + errorCode);
             prodialog.setMessage("视频上传失败，点击确定关闭！");
             Toast.makeText(RecActivity.this, "失败", Toast.LENGTH_LONG).show();
             prodialog.dismiss();
         } else {
-           // mTvStatus.setText("上传失败errorCode=" + errorCode);
+            // mTvStatus.setText("上传失败errorCode=" + errorCode);
             prodialog.setMessage("视频上传失败，点击确定关闭！");
             Toast.makeText(RecActivity.this, "失败", Toast.LENGTH_LONG).show();
             prodialog.dismiss();
@@ -529,9 +579,9 @@ public class RecActivity extends SuperActivity implements
     @Override
     public void onPause(UploadTask uploadTask) {
         if (uploadTask.getId().equals(URL_Test_ID)) {
-          //  mTvStatus.setText("上传暂停！");
+            //  mTvStatus.setText("上传暂停！");
         } else {
-          //  mTvStatus.setText("上传暂停！");
+            //  mTvStatus.setText("上传暂停！");
         }
     }
 }
