@@ -155,7 +155,7 @@ public class RecActivity extends SuperActivity implements
                         // mRecorder.setVideoSize(640, 480);
                         //  mRecorder.setVideoSize(1280,720);
                         mRecorder.setVideoFrameRate(30);
-                        // mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
+                        mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
                         //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
                         //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
                     //    mRecorder.setOrientationHint(90);
