@@ -127,6 +127,7 @@ public class RecActivity extends SuperActivity implements
                        mRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
                         //设置音频源
                          mRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+
                         // Set output file format
                          // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
                           // mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC); //he_aac 编码
@@ -298,10 +299,13 @@ public class RecActivity extends SuperActivity implements
         clsbdh = localIntent.getStringExtra("clsbdh");//车辆识别代号
         jylsh = localIntent.getStringExtra("jylsh");//检验流水号
         vectype = localIntent.getStringExtra("zpzl"); //照片种类，这里当作拍照类型用
-//        hphm="苏EA98X8";
+//        hphm="苏E11111";
 //        hpzl="02";
-//        strServer_ip="192.168.1.58";
-//        strServer_port="8080";
+//        strServer_ip="192.168.1.228";
+//        strServer_port="8888";
+//        clsbdh="LS4AAB3D86F001738";
+//        jylsh="05803320031000053";
+//        vectype="0113";
         //  strClsbdh = localIntent.getStringExtra("clsbdh");
         strClsbdh = clsbdh;
         // queue_id = localIntent.getStringExtra("queueid");
@@ -511,8 +515,14 @@ public class RecActivity extends SuperActivity implements
     public void onError(UploadTask uploadTask, int errorCode, int position) {
         if (uploadTask.getId().equals(URL_Test_ID)) {
            // mTvStatus.setText("上传失败=" + errorCode);
+            prodialog.setMessage("视频上传失败，点击确定关闭！");
+            Toast.makeText(RecActivity.this, "失败", Toast.LENGTH_LONG).show();
+            prodialog.dismiss();
         } else {
            // mTvStatus.setText("上传失败errorCode=" + errorCode);
+            prodialog.setMessage("视频上传失败，点击确定关闭！");
+            Toast.makeText(RecActivity.this, "失败", Toast.LENGTH_LONG).show();
+            prodialog.dismiss();
         }
     }
 

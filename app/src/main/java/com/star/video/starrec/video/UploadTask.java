@@ -115,6 +115,9 @@ public class UploadTask implements Runnable {
                 params.put("eid", eid);
                 params.put("hphm", hphm);
                 params.put("hpzl", hpzl);
+                params.put("clsbdh",clsbdh);
+                params.put("jylsh",jylsh);
+                params.put("zpzl",zpzl);
                 Log.i(TAG, "chunck =" + chunck + "chuncks =" + chuncks);
                 final byte[] mBlock = FileUtils.getBlock((chunck - 1) * blockLength, file, blockLength);
                 Log.i(TAG, "mBlock == " + mBlock.length);
@@ -302,6 +305,10 @@ public class UploadTask implements Runnable {
     public String getClsbdh() {
         return clsbdh;
     }
+
+    public void setClsbdh(String clsbdh) { this.clsbdh = clsbdh; }
+
+    public void setJylsh(String jylsh) { this.jylsh = jylsh;    }
 
     public String getJylsh() {
         return jylsh;
