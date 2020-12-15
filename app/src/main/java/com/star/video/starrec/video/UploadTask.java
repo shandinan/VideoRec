@@ -139,7 +139,7 @@ public class UploadTask implements Runnable {
 
                 Response response = null;
                 response = mClient.newCall(request).execute();
-                Log.i(TAG, "isSuccessful =" + response.isSuccessful());
+             //   Log.i(TAG, "isSuccessful =" + response.isSuccessful());
                 if (response.isSuccessful()) {
                     String ret = response.body().string();
                     Log.d(TAG, "uploadVideo  UploadTask ret:" + ret);

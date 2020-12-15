@@ -499,12 +499,12 @@ public class RecActivity extends SuperActivity implements
                     // TODO Auto-generated method stub
                     Log.d(TAG, currentStep);
                     if (currentStep.equals("ftp文件上传成功")) {
-                        Log.d(TAG, "-----shanchuan--successful");
+                        //Log.d(TAG, "-----shanchuan--successful");
                     } else if (currentStep.equals("FTP上传中")) {
                         long fize = file.length();
                         float num = (float) uploadSize / (float) fize;
                         int result = (int) (num * 100);
-                        Log.d(TAG, "-----upload---" + result + "%");
+                      //  Log.d(TAG, "-----upload---" + result + "%");
                     }
                 }
             });
@@ -581,7 +581,7 @@ public class RecActivity extends SuperActivity implements
                 file.delete();
                 file.getAbsoluteFile().delete();//删除文件夹
                 file = null;
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 Intent localIntent = new Intent();
                 localIntent.putExtra("result", true); //取消
                 setResult(1, localIntent);
