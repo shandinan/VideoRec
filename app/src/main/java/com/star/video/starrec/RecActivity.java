@@ -3,6 +3,7 @@ package com.star.video.starrec;
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.CamcorderProfile;
@@ -21,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+
 import com.star.video.starrec.ftpUpload.FTP;
 import com.star.video.starrec.utils.DateHelper;
 import com.star.video.starrec.utils.HttpUtils;
@@ -34,7 +37,6 @@ import java.util.List;
 
 import static com.star.video.starrec.utils.MD5Helper.getFileMD5;
 
-@TargetApi(19)
 public class RecActivity extends SuperActivity implements
         SurfaceHolder.Callback, MediaRecorder.OnInfoListener, UploadTaskListener {
     private static final String TAG = "RecActivity";
@@ -69,15 +71,23 @@ public class RecActivity extends SuperActivity implements
     private UploadManager uploadManager; //上传进程管理
     private android.os.Handler handler = new android.os.Handler();
 
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+
+    private static String[] PERMISSIONS_STORAGE = {
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.WRITE_EXTERNAL_STORAGE"};
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.sdnrecvideo);
+        verifyStoragePermissions(this);
         mSurfaceview = (SurfaceView) findViewById(R.id.surfaceview);
-        mSurfaceHolder = this.mSurfaceview.getHolder();
-        mSurfaceHolder.addCallback(this);
-        mSurfaceHolder.setType(3);
+//        mSurfaceHolder = this.mSurfaceview.getHolder();
+//        mSurfaceHolder.addCallback(this);
+//        mSurfaceHolder.setType(3);
         mImageView = (ImageView) findViewById(R.id.imageview);
         mImageView.setVisibility(View.GONE);
         mSurfaceview.setVisibility(View.VISIBLE);
@@ -101,6 +111,13 @@ public class RecActivity extends SuperActivity implements
                         mediaPlayer.reset();
                         mediaPlayer.release();
                         mediaPlayer = null;
+                        if (camera != null) {
+                            // camera.release();
+                            camera.setPreviewCallback(null);
+                            camera.stopPreview();
+                            camera.release();
+                            camera = null;
+                        }
                     }
                 }
                 if (!mStartedFlg) {
@@ -110,16 +127,24 @@ public class RecActivity extends SuperActivity implements
                         mRecorder = new MediaRecorder();
                         mRecorder.setOnInfoListener(RecActivity.this); // 设置摄像头事件监听
                     }
+                    if (camera != null) {
+                        if (isView) {
+                            camera.stopPreview();
+                        }
+                        camera.setPreviewCallback(null);
+                        camera.stopPreview();
+                        camera.release();
+                        camera = null;
+                    }
                     if (camera == null) //如果摄像头未被打开
                     {
                         camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                        //   camera = Camera.open();
                     }
 
                     if (camera != null) {
-                        if(isView){
-                            camera.stopPreview();
-                        }
-                     //   camera.setDisplayOrientation(90);
+
+                        //   camera.setDisplayOrientation(90);
                         camera.unlock();
                         mRecorder.setCamera(camera);
                     }
@@ -147,10 +172,10 @@ public class RecActivity extends SuperActivity implements
                         //  mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
                         //  mRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264); // H263的貌似有点不清晰
-                        // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-                     //   CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                        //   // mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+                        //   CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
                         CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
-                       // CamcorderProfile.
+                        // CamcorderProfile.
                         mRecorder.setProfile(cProfile);
                         // mRecorder.setVideoSize(640, 480);
                         //  mRecorder.setVideoSize(1280,720);
@@ -158,7 +183,7 @@ public class RecActivity extends SuperActivity implements
                         mRecorder.setVideoEncodingBitRate(3 * 1024 * 1024);
                         //  mRecorder.setVideoEncodingBitRate(900*1024);//较为清晰，且文件大小为3.26M(30秒)
                         //    mRecorder.setVideoSize(720,1280); // //较为清晰，且文件大小为3.26M(30秒)
-                    //    mRecorder.setOrientationHint(90);
+                        //    mRecorder.setOrientationHint(90);
                         // 设置记录会话的最大持续时间（毫秒）
                         // mRecorder.setMaxDuration(15 * 1000);
                         mRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
@@ -303,8 +328,16 @@ public class RecActivity extends SuperActivity implements
         strServer_ip = localIntent.getStringExtra("ip"); //获取传送过来的IP
         strServer_port = localIntent.getStringExtra("port"); //获取传送过来的端口
         clsbdh = localIntent.getStringExtra("clsbdh");//车辆识别代号
+        if(clsbdh==null){
+            clsbdh="";
+        }
         jylsh = localIntent.getStringExtra("jylsh");//检验流水号
+        if(jylsh==null){
+            jylsh="";
+        }
         vectype = localIntent.getStringExtra("zpzl"); //照片种类，这里当作拍照类型用
+        if (vectype == null)
+            vectype = "";
 //        hphm="苏E11111";
 //        hpzl="02";
 //        strServer_ip="192.168.1.228";
@@ -327,6 +360,21 @@ public class RecActivity extends SuperActivity implements
             handler.postDelayed(this, 1000);
         }
     };
+
+    //然后通过一个函数来申请
+    public static void verifyStoragePermissions(RecActivity activity) {
+        try {
+            //检测是否有写的权限
+            int permission = ActivityCompat.checkSelfPermission(activity,
+                    "android.permission.WRITE_EXTERNAL_STORAGE");
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // 没有写的权限，去申请写的权限，会弹出对话框
+                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 获取SD path
@@ -362,22 +410,31 @@ public class RecActivity extends SuperActivity implements
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
-       // Log.i(TAG, "surfaceCreated: 开始Create");
+        // Log.i(TAG, "surfaceCreated: 开始Create");
         mSurfaceHolder = holder;
-       // Log.i(TAG, "surfaceCreated: 开始Creat222e");
+        // Log.i(TAG, "surfaceCreated: 开始Creat222e");
+
+        if (camera != null) {
+            camera.release();
+        }
         if (camera == null) {
-            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+            //camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+            camera = Camera.open();
         }
         if (camera != null) {
-         //   camera.setDisplayOrientation(90);
-           // camera.unlock();
+            //   camera.setDisplayOrientation(90);
+            // camera.unlock();
             Camera.Parameters localParameters = this.camera.getParameters(); // 得到摄像机的设置参数
-            List<String> focusModes = localParameters.getSupportedFocusModes();
-            if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
-                localParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-            } else {
-                if (focusModes != null && focusModes.size() > 0)
-                    localParameters.setFocusMode(focusModes.get(0));
+            try {
+                List<String> focusModes = localParameters.getSupportedFocusModes();
+                if (focusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                    localParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+                } else {
+                    if (focusModes != null && focusModes.size() > 0)
+                        localParameters.setFocusMode(focusModes.get(0));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             camera.setParameters(localParameters);
@@ -390,13 +447,14 @@ public class RecActivity extends SuperActivity implements
                 }
                 isView = true;
                 camera.startPreview();
-               // Log.i(TAG, "surfaceCreated: 开始预览");
+                // Log.i(TAG, "surfaceCreated: 开始预览");
             } catch (IOException e) {
                 Log.e(TAG, "surfaceCreated: 预览失败", e);
                 e.printStackTrace();
             }
 
         }
+
     }
 
     @Override
@@ -449,12 +507,12 @@ public class RecActivity extends SuperActivity implements
                     // TODO Auto-generated method stub
                     Log.d(TAG, currentStep);
                     if (currentStep.equals("ftp文件上传成功")) {
-                        Log.d(TAG, "-----shanchuan--successful");
+                        //Log.d(TAG, "-----shanchuan--successful");
                     } else if (currentStep.equals("FTP上传中")) {
                         long fize = file.length();
                         float num = (float) uploadSize / (float) fize;
                         int result = (int) (num * 100);
-                        Log.d(TAG, "-----upload---" + result + "%");
+                        //  Log.d(TAG, "-----upload---" + result + "%");
                     }
                 }
             });
@@ -531,7 +589,7 @@ public class RecActivity extends SuperActivity implements
                 file.delete();
                 file.getAbsoluteFile().delete();//删除文件夹
                 file = null;
-                Thread.sleep(1000);
+                Thread.sleep(500);
                 Intent localIntent = new Intent();
                 localIntent.putExtra("result", true); //取消
                 setResult(1, localIntent);
