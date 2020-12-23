@@ -49,6 +49,10 @@ public class RecActivity extends SuperActivity implements
     private MediaRecorder mRecorder;
     private SurfaceHolder mSurfaceHolder;
     private ImageView mImageView;
+    ImageButton btnFlashSwitch = null;
+    String[] FlashMode = {Camera.Parameters.FLASH_MODE_AUTO, Camera.Parameters.FLASH_MODE_OFF, Camera.Parameters.FLASH_MODE_ON};
+    int[] FlashModeIcon = {R.mipmap.flash_auto, R.mipmap.flash_off, R.mipmap.flash_on};
+    int curFlashMode = 0; //当前闪光灯类型
     private Camera camera;
     private MediaPlayer mediaPlayer;
     private String path;
@@ -100,6 +104,30 @@ public class RecActivity extends SuperActivity implements
         mBtnUpdateVideo.setBackgroundResource(R.mipmap.up_b);
         mBtnUpdateVideo.setEnabled(false); //设置不可用
         recTimeView = (TextView) findViewById(R.id.rectime);
+        btnFlashSwitch = ((ImageButton) findViewById(R.id.FlashMode));
+        btnFlashSwitch.setBackgroundResource(this.FlashModeIcon[this.curFlashMode]);
+       // btnFlashSwitch.setOnClickListener(this);
+        //闪光灯是否开启
+        btnFlashSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                curFlashMode++;
+                if (curFlashMode == 3) {
+                    curFlashMode = 0;
+                }
+                btnFlashSwitch.setBackgroundResource(RecActivity.this.FlashModeIcon[RecActivity.this.curFlashMode]);
+
+                // ==============================单氐楠 2016年3月25日15:44:04
+                // =======开始=================
+                Camera.Parameters localParameters = camera.getParameters();
+                localParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]);
+                camera.setParameters(localParameters);
+                camera.startPreview();
+                // ==============================单氐楠 2016年3月25日15:44:04
+                // =======结束=================
+            }
+        });
+
         // 开始结束按钮
         mBtnStartStop.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,6 +173,8 @@ public class RecActivity extends SuperActivity implements
                     if (camera != null) {
 
                         //   camera.setDisplayOrientation(90);
+                        Camera.Parameters myParameters = camera.getParameters();
+                        myParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]); //设置闪光灯
                         camera.unlock();
                         mRecorder.setCamera(camera);
                     }
@@ -252,6 +282,7 @@ public class RecActivity extends SuperActivity implements
                     }
                     mStartedFlg = false;
                 }
+
             }
         });
 
@@ -436,7 +467,7 @@ public class RecActivity extends SuperActivity implements
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            localParameters.setFlashMode(this.FlashMode[this.curFlashMode]); //设置闪光灯
             camera.setParameters(localParameters);
 
             try {
