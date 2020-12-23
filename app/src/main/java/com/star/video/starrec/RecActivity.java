@@ -50,7 +50,7 @@ public class RecActivity extends SuperActivity implements
     private SurfaceHolder mSurfaceHolder;
     private ImageView mImageView;
     ImageButton btnFlashSwitch = null;
-    String[] FlashMode = {Camera.Parameters.FLASH_MODE_AUTO, Camera.Parameters.FLASH_MODE_OFF, Camera.Parameters.FLASH_MODE_ON};
+    String[] FlashMode = {Camera.Parameters.FLASH_MODE_AUTO, Camera.Parameters.FLASH_MODE_OFF, Camera.Parameters.FLASH_MODE_TORCH};
     int[] FlashModeIcon = {R.mipmap.flash_auto, R.mipmap.flash_off, R.mipmap.flash_on};
     int curFlashMode = 0; //当前闪光灯类型
     private Camera camera;
@@ -175,6 +175,7 @@ public class RecActivity extends SuperActivity implements
                         //   camera.setDisplayOrientation(90);
                         Camera.Parameters myParameters = camera.getParameters();
                         myParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]); //设置闪光灯
+                      //  myParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                         camera.unlock();
                         mRecorder.setCamera(camera);
                     }
