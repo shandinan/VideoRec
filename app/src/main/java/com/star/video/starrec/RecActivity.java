@@ -2,7 +2,9 @@ package com.star.video.starrec;
 
 import android.annotation.TargetApi;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.FeatureInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.media.AudioManager;
@@ -50,8 +52,8 @@ public class RecActivity extends SuperActivity implements
     private SurfaceHolder mSurfaceHolder;
     private ImageView mImageView;
     ImageButton btnFlashSwitch = null;
-    String[] FlashMode = {Camera.Parameters.FLASH_MODE_AUTO, Camera.Parameters.FLASH_MODE_OFF, Camera.Parameters.FLASH_MODE_TORCH};
-    int[] FlashModeIcon = {R.mipmap.flash_auto, R.mipmap.flash_off, R.mipmap.flash_on};
+    String[] FlashMode = {Camera.Parameters.FLASH_MODE_OFF, Camera.Parameters.FLASH_MODE_TORCH};
+    int[] FlashModeIcon = {R.mipmap.flash_off, R.mipmap.flash_on};
     int curFlashMode = 0; //当前闪光灯类型
     private Camera camera;
     private MediaPlayer mediaPlayer;
@@ -106,23 +108,26 @@ public class RecActivity extends SuperActivity implements
         recTimeView = (TextView) findViewById(R.id.rectime);
         btnFlashSwitch = ((ImageButton) findViewById(R.id.FlashMode));
         btnFlashSwitch.setBackgroundResource(this.FlashModeIcon[this.curFlashMode]);
-       // btnFlashSwitch.setOnClickListener(this);
+        // btnFlashSwitch.setOnClickListener(this);
         //闪光灯是否开启
         btnFlashSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mStartedFlg) {
+                    return;
+                }
                 curFlashMode++;
-                if (curFlashMode == 3) {
+                if (curFlashMode == 2) {
                     curFlashMode = 0;
                 }
                 btnFlashSwitch.setBackgroundResource(RecActivity.this.FlashModeIcon[RecActivity.this.curFlashMode]);
 
                 // ==============================单氐楠 2016年3月25日15:44:04
                 // =======开始=================
-                Camera.Parameters localParameters = camera.getParameters();
-                localParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]);
-                camera.setParameters(localParameters);
-                camera.startPreview();
+                //  Camera.Parameters localParameters = camera.getParameters();
+                //localParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]);
+                // camera.setParameters(localParameters);
+                // camera.startPreview();
                 // ==============================单氐楠 2016年3月25日15:44:04
                 // =======结束=================
             }
@@ -153,6 +158,7 @@ public class RecActivity extends SuperActivity implements
                     mImageView.setVisibility(View.GONE);
                     if (mRecorder == null) {
                         mRecorder = new MediaRecorder();
+                        mRecorder.reset();//重置录像配置
                         mRecorder.setOnInfoListener(RecActivity.this); // 设置摄像头事件监听
                     }
                     if (camera != null) {
@@ -164,21 +170,36 @@ public class RecActivity extends SuperActivity implements
                         camera.release();
                         camera = null;
                     }
-                    if (camera == null) //如果摄像头未被打开
-                    {
-                        camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
-                        //   camera = Camera.open();
+                    if (isSurportFlashlight(RecActivity.this)) {
+                        if (camera == null) //如果摄像头未被打开
+                        {
+                            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                            //   camera = Camera.open();
+                        }
+
+                        if (camera != null) {
+
+                            //   camera.setDisplayOrientation(90);
+                            Camera.Parameters myParameters = camera.getParameters();
+                            myParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]); //设置闪光灯
+                            //  myParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                            camera.setParameters(myParameters);
+                            camera.startPreview();
+                            camera.unlock();
+                            mRecorder.setCamera(camera);
+                        }
+                    } else {
+                        if (camera == null) //如果摄像头未被打开
+                        {
+                            camera = Camera.open(Camera.CameraInfo.CAMERA_FACING_BACK);
+                            //   camera = Camera.open();
+                        }
+                        if (camera != null) {
+                            camera.unlock();
+                            mRecorder.setCamera(camera);
+                        }
                     }
 
-                    if (camera != null) {
-
-                        //   camera.setDisplayOrientation(90);
-                        Camera.Parameters myParameters = camera.getParameters();
-                        myParameters.setFlashMode(RecActivity.this.FlashMode[RecActivity.this.curFlashMode]); //设置闪光灯
-                      //  myParameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                        camera.unlock();
-                        mRecorder.setCamera(camera);
-                    }
                     try {
                         // 这两项需要放在setOutputFormat之前
                         //   mRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
@@ -360,12 +381,12 @@ public class RecActivity extends SuperActivity implements
         strServer_ip = localIntent.getStringExtra("ip"); //获取传送过来的IP
         strServer_port = localIntent.getStringExtra("port"); //获取传送过来的端口
         clsbdh = localIntent.getStringExtra("clsbdh");//车辆识别代号
-        if(clsbdh==null){
-            clsbdh="";
+        if (clsbdh == null) {
+            clsbdh = "";
         }
         jylsh = localIntent.getStringExtra("jylsh");//检验流水号
-        if(jylsh==null){
-            jylsh="";
+        if (jylsh == null) {
+            jylsh = "";
         }
         vectype = localIntent.getStringExtra("zpzl"); //照片种类，这里当作拍照类型用
         if (vectype == null)
@@ -468,7 +489,7 @@ public class RecActivity extends SuperActivity implements
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            localParameters.setFlashMode(this.FlashMode[this.curFlashMode]); //设置闪光灯
+            // localParameters.setFlashMode(this.FlashMode[this.curFlashMode]); //设置闪光灯
             camera.setParameters(localParameters);
 
             try {
@@ -487,6 +508,25 @@ public class RecActivity extends SuperActivity implements
 
         }
 
+    }
+
+    /**
+     * 判断是否支持闪光灯
+     *
+     * @param context
+     * @return
+     */
+    public boolean isSurportFlashlight(Context context) {
+        boolean flag = false;
+        PackageManager pm = context.getPackageManager();
+        FeatureInfo[] features = pm.getSystemAvailableFeatures();
+        for (FeatureInfo f : features) {
+            if (PackageManager.FEATURE_CAMERA_FLASH.equals(f.name)) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
     }
 
     @Override
